@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import mainCom.ParseString;
+import mainCom.UMLParser;
 import net.sourceforge.plantuml.SourceStringReader;
 
 /**
@@ -16,7 +17,7 @@ import net.sourceforge.plantuml.SourceStringReader;
  *
  */
 public class ClassGenerator {
-//	String source = "@startuml\n";
+	// String source = "@startuml\n";
 
 	
 	public void createClassUMLObject() throws IOException{
@@ -30,7 +31,7 @@ public class ClassGenerator {
 				source += "@enduml";
 				*/
 		SourceStringReader reader = new SourceStringReader(ParseString.getParseString());
-		String desc = reader.generateImage(new File("/home/rakshithk/test.png"));
+		String desc = reader.generateImage(new File(UMLParser.UMLDiagramPath));
 	}
 	
 }
