@@ -20,9 +20,13 @@ public final class ParseString {
 	public static String getParseStringMethods() {
 		return ParseStringMethods;
 	}
+	
+	public static void clearParseStringMethods() {
+		ParseStringMethods = "";
+	}
 
 	public static void setParseStringMethods(String parseStringMethods) {
-		ParseStringMethods = parseStringMethods;
+		ParseStringMethods += parseStringMethods + "\n";
 	}
 	
 	

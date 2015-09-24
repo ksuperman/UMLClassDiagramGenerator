@@ -13,20 +13,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import mainCom.ParseString;
+
 import utilities.UtilitiesFunctions;
 
 public class ClassParser {
 	private String javaProjectPath;
 	private File[] javaFileList;
+	public Map<String, String> classNames = new HashMap<>();
 
 	// Compilation Unit Declaration.
 	private CompilationUnit cu;
@@ -48,8 +54,6 @@ public class ClassParser {
 	private String packageName = "", modifierName = "", classType = "", className = "";
 	private boolean packageFound = false, modifierFound = false, classFound = false, classNameFound = false;
 	
-	
-
 	// Dependencies related Declaration.
 	private final String[] dependencies = { "implements;--|>", "extends;-->" };
 	private String dependenciesType = "";
@@ -61,6 +65,9 @@ public class ClassParser {
 	//Methods related Declaration.
 	private ArrayList<String> MethodsArray;
 	private String tempMethod;
+	
+	//Attribute related Declaration.
+	private ArrayList<String> AttributeArray;
 
 	// Temp Variables used for Intermediate processing.
 	private String line = "", temp = "";
@@ -94,6 +101,7 @@ public class ClassParser {
 
 			FileInputStream in = null;
 			try {
+				classNames.put(javaFileList[i].getName().substring(0, javaFileList[i].getName().indexOf(".")), javaFileList[i].getName().substring(0, javaFileList[i].getName().indexOf(".")));
 				in = new FileInputStream(javaProjectPath + "/" + javaFileList[i].getName());
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -132,6 +140,7 @@ public class ClassParser {
 
 			for (int i = 0; i < javaFileList.length; i++) {
 				cu = cuMap.get(javaFileList[i].getName());
+				
 				try {
 					list = new java.util.ArrayList<String>(Arrays.asList(cu.toStringWithoutComments().split("\\n")));
 					for (Iterator<String> StringIterator = list.iterator(); StringIterator.hasNext();) {
@@ -228,38 +237,13 @@ public class ClassParser {
 							}
 						}
 					}
-					MethodsArray = new ArrayList<>();
-					ParseString.setParseStringMethods("");
-					new MethodList().visit(cu, null);
-					tempMethodList = ParseString.getParseStringMethods();
-					tempStringArray = tempMethodList.split("\n");
-					for(String methods : tempStringArray) {
-						if(methods != "")
-							MethodsArray.add(className + " : " + methods + "\n");
-						//String[] tempMethodArray = methods.split(" ");
-						/*
-						 tempMethod = "";
-						for(String TmpMethodArgs : tempMethodArray) {
-							switch (TmpMethodArgs) {
-							
-							case "private":
-								tempMethod += privateModifierString;
-								break;
-								
-							case "public":
-								tempMethod += publicModifierString;
-								break;
-								
-							case "static":
-								tempMethod += staticModifierString;
-								break;
-							
-							default :
-								break;
-							}
-						}*/
-					}
-					tempStringArray = null;
+					
+					//Getting the Class Method Declartions
+					MethodsArray = ClassAttributesParser.getMethodDeclarations(cu, className);
+										
+					//Getting the Class Attribute Declartions
+					AttributeArray = ClassAttributesParser.getAttributesDeclarations(cu, classNames , dependencyList);
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				} finally {
@@ -267,9 +251,13 @@ public class ClassParser {
 					if (packageName == "")
 						packageName = "DefaultPackage";
 					ParseString.setParseString("package " + packageName + " #DDDDDD {\n");
-					if (className != "")
-						ParseString.setParseString(classType + " " + className + " << " +   modifierName  + " >> " + "\n}\n");
-
+					if (className != "") {
+						ParseString.setParseString(classType + " " + className + " << " +   modifierName  + " >> " + "{\n");
+						for(String attribute : AttributeArray) {
+							ParseString.setParseString(attribute + "\n");
+						}
+						ParseString.setParseString("}\n}\n");
+					}
 					// Creating the Dependecies between classes
 					for (Map.Entry<String, ArrayList<String>> dependency : dependencyList.entrySet()) {
 						String arrorType = dependencyMap.get(dependency.getKey());
@@ -300,18 +288,11 @@ public class ClassParser {
 					dependenciesType = "";
 
 				}
+				
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 		}
 	}
-	
-	private static class MethodList extends VoidVisitorAdapter {
-		
-        @Override
-        public void visit(MethodDeclaration n, Object arg) {
-        	ParseString.setParseStringMethods(n.getDeclarationAsString(true, false, true));
-        }
-    }
 }

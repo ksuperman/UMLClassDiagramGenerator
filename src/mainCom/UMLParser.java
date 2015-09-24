@@ -9,7 +9,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
-import diagramGenerator.ClassGenerator;
+import diagramGenerator.UMLImageRender;
 import parser.ClassParser;
 
 public class UMLParser {
@@ -26,21 +26,7 @@ public class UMLParser {
 		ClassParser classes = new ClassParser(JavaProjectPath);
 		classes.ParseClass();
 		System.out.println(ParseString.getParseString());
-		ClassGenerator classtest = new ClassGenerator();
+		UMLImageRender classtest = new UMLImageRender();
 		classtest.createClassUMLObject();
-
-		/*
-		 * 
-		 * FileInputStream in = new FileInputStream(
-		 * "/home/rakshithk/workspace/JavaMultiThreadExample/src/FileCombine/FileText.java"
-		 * ); CompilationUnit cu; try { // parse the file cu =
-		 * JavaParser.parse(in); } finally { in.close(); } new
-		 * MethodVisitor().visit(cu, null);
-		 * 
-		 * System.out.println(cu.toStringWithoutComments()); //
-		 */
 	}
-
-	
-
 }
