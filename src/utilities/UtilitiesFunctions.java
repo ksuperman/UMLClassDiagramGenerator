@@ -3,6 +3,8 @@
  */
 package utilities;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,6 +15,8 @@ import java.util.regex.Pattern;
 public final class UtilitiesFunctions {
 	
 	private static boolean isFunction = false;
+	private static String[] collections = {"Map;Map","List;List","ArrayList;ArrayList","Collection;Collection"};
+	private static Map<String,String> collectionTypes;
 	
 	private UtilitiesFunctions(){};
 	
@@ -33,14 +37,58 @@ public final class UtilitiesFunctions {
 	}
 
 	public static boolean isArray(String attributePiece) {
-		if(attributePiece != null)
-			return attributePiece.contains("[]");
-		else
-			return false;
+		boolean flag = false;
+		if(collectionTypes == null) {
+			collectionTypes = new HashMap<>();
+			for (String dataType : collections) {
+				String[] tempStringArray = dataType.split(";");
+				for (int x = 0; x < tempStringArray.length; x++) {
+					collectionTypes.put(tempStringArray[0], tempStringArray[1]);
+				}
+			}
+		}
+		
+		if(attributePiece != null) {
+			for(Map.Entry<String,String> collectionType : collectionTypes.entrySet() ) {
+				flag = attributePiece.contains(collectionType.getKey() + "<");
+				if(flag)
+					break;
+			}
+			if(!flag) {
+				flag = attributePiece.contains("[]");
+			}		
+		}
+		return flag;
+	}
+	
+	public static String isArrayOrCollection(String attributePiece) {
+		String flag = "";
+		if(collectionTypes == null) {
+			collectionTypes = new HashMap<>();
+			for (String dataType : collections) {
+				String[] tempStringArray = dataType.split(";");
+				for (int x = 0; x < tempStringArray.length; x++) {
+					collectionTypes.put(tempStringArray[0], tempStringArray[1]);
+				}
+			}
+		}
+		
+		if(attributePiece != null) {
+			for(Map.Entry<String,String> collectionType : collectionTypes.entrySet() ) {
+				System.out.println("matches " + attributePiece.contains(collectionType.getKey() + "<"));
+				if(attributePiece.contains(collectionType.getKey() + "<")) {
+					flag = "Collection";
+					break;
+				}
+			}	
+			if(attributePiece.contains("[]") && flag == "")
+				flag = "Array";
+		}
+		return flag;
 	}
 	
 	public static boolean isFunction(String attributePiece) {
-		
+	
 		String functionPattern = "";
 		
 		if(!isFunction)

@@ -5,8 +5,12 @@ public final class ParseString {
 	private static String ParseStringtail = "";
 	private static String ParseStringMethods = "";
 
-	public static String getParseString() {
+	public static String getParseStringPlantUML() {
 		return "@startuml\n" + ParseStringhead + ParseStringtail +  "@enduml";
+	}
+	
+	public static String getParseStringYUML() {
+		return ParseStringhead + ParseStringtail;
 	}
 
 	public static void setParseString(String parseString) {

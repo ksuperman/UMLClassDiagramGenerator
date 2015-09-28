@@ -30,6 +30,7 @@ import mainCom.ParseString;
 import utilities.UtilitiesFunctions;
 
 public class ClassParser {
+	private ParsedClass[] pc = new ParsedClass [100];
 	private String javaProjectPath;
 	private File[] javaFileList;
 	public Map<String, String> classNames = new HashMap<>();
@@ -55,7 +56,7 @@ public class ClassParser {
 	private boolean packageFound = false, modifierFound = false, classFound = false, classNameFound = false;
 	
 	// Dependencies related Declaration.
-	private final String[] dependencies = { "implements;--|>", "extends;-->" };
+	private final String[] dependencies = { "implements;implements", "extends;extends" ,"associations;associations"};
 	private String dependenciesType = "";
 	private boolean dependenciesFound = false;
 	private ArrayList<String> tempDepClassArray;
@@ -63,11 +64,11 @@ public class ClassParser {
 	private Map<String, java.util.ArrayList<String>> dependencyList = new HashMap<>();
 	
 	//Methods related Declaration.
-	private ArrayList<String> MethodsArray;
+	private ArrayList<String> methodsArray;
 	private String tempMethod;
 	
 	//Attribute related Declaration.
-	private ArrayList<String> AttributeArray;
+	private ArrayList<String> attributeArray;
 
 	// Temp Variables used for Intermediate processing.
 	private String line = "", temp = "";
@@ -135,7 +136,7 @@ public class ClassParser {
 		tempStringArray = null;
 	}
 
-	public void ParseClass() {
+	public ParsedClass[] ParseClass() {
 		try {
 
 			for (int i = 0; i < javaFileList.length; i++) {
@@ -171,6 +172,12 @@ public class ClassParser {
 									case "static":
 										modifierName = staticModifierString;
 										break;
+									case "private":
+										modifierName = privateModifierString;
+										break;
+									case "protected":
+										modifierName = protectedModifierString;
+										break;
 									case "public":
 										modifierName = publicModifierString;
 										break;
@@ -193,7 +200,6 @@ public class ClassParser {
 										}
 										break;
 									}
-
 								} else {
 									try {
 										if (!dependenciesFound) {
@@ -239,21 +245,51 @@ public class ClassParser {
 					}
 					
 					//Getting the Class Method Declartions
-					MethodsArray = ClassAttributesParser.getMethodDeclarations(cu, className);
+					methodsArray = ClassAttributesParser.getMethodDeclarations(cu, className);
 										
 					//Getting the Class Attribute Declartions
-					AttributeArray = ClassAttributesParser.getAttributesDeclarations(cu, classNames , dependencyList);
+					attributeArray = ClassAttributesParser.getAttributesDeclarations(cu, classNames);
 					
+					//Convert Class declations inside other classes to Assocations
+					Iterator<String> attribItrator = attributeArray.iterator();
+					while(attribItrator.hasNext()) {
+						String attribute = attribItrator.next();
+						dependenciesType = "associations";
+						System.out.println("attribute ; " + attribute);
+						tempStringArray = attribute.split(" ");
+						if(UtilitiesFunctions.isArray(tempStringArray[1])) {
+							if(UtilitiesFunctions.isArrayOrCollection(tempStringArray[1]) == "Collection") {
+								temp = tempStringArray[1].substring(0, tempStringArray[1].indexOf("<"));
+							}else
+								temp = tempStringArray[1].substring(0, tempStringArray[1].indexOf("["));
+						}
+						else
+							temp = tempStringArray[1];
+							System.out.println(temp);
+						if(classNames.containsKey(temp)){
+							//AttributeArray.remove(attribute);
+							tempDepClassArray = dependencyList.get(dependenciesType);
+							if (tempDepClassArray != null)
+								tempDepClassArray.add(tempStringArray[1]);
+							else {
+								tempDepClassArray = new ArrayList<>();
+								tempDepClassArray.add(tempStringArray[1]);
+							}
+							dependencyList.put(dependenciesType, tempDepClassArray);
+							attribItrator.remove();
+						}
+					}
+		
 				} catch (Exception e) {
 					e.printStackTrace();
 				} finally {
-					// Create the UML for Package and Classname
-					if (packageName == "")
+					//Create the Parser Classes for each of the Source Files !!
+					/*if (packageName == "")
 						packageName = "DefaultPackage";
 					ParseString.setParseString("package " + packageName + " #DDDDDD {\n");
 					if (className != "") {
 						ParseString.setParseString(classType + " " + className + " << " +   modifierName  + " >> " + "{\n");
-						for(String attribute : AttributeArray) {
+						for(String attribute : attributeArray) {
 							ParseString.setParseString(attribute + "\n");
 						}
 						ParseString.setParseString("}\n}\n");
@@ -263,15 +299,20 @@ public class ClassParser {
 						String arrorType = dependencyMap.get(dependency.getKey());
 						tempDepClassArray = dependency.getValue();
 						for (String depClassName : tempDepClassArray) {
-							ParseString.setParseStringTail(className + arrorType + depClassName + "\n");
+							if(UtilitiesFunctions.isArray(depClassName))
+								ParseString.setParseStringTail(className + " \"1\" " + arrorType + " \"*\" " + depClassName.substring(0, depClassName.indexOf("[")) + "\n");
+							else
+								ParseString.setParseStringTail(className + " \"1\" " + arrorType + " \"1\" " + depClassName + "\n");
 						}
 					}
 					
 					//Creating the methods inside the classes
-					for(String methods : MethodsArray) {
-						ParseString.setParseStringTail(methods);
-					}
-
+					for(String methods : methodsArray) {
+						ParseString.setParseStringTail(className + " : " + methods + "\n");
+					}*/
+					
+					if(className != null && className != "")	
+						pc[i]= new ParsedClass(packageName, modifierName, classType, className, dependencyList, attributeArray, methodsArray);
 					dependencyList.clear();
 					tempDepClassArray = new ArrayList<>();
 
@@ -294,5 +335,6 @@ public class ClassParser {
 			e.printStackTrace();
 		} finally {
 		}
+		return pc;
 	}
 }
