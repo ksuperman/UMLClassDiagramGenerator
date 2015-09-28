@@ -56,10 +56,10 @@ public final class ClassAttributesParser {
 				for (String attributeString : tempStringArray) {
 					try {
 						System.out.println("\nLINE--------" + attributeString + "\n");
-						//System.out.println("------------" + UtilitiesFunctions.isFunction(attributeString));
+						System.out.println("isFunction----------" + UtilitiesFunctions.isFunction(attributeString));
 						
-						if (!UtilitiesFunctions.isFunction(attributeString)) {
-							System.out.println("isarrayorcoll" + UtilitiesFunctions.isArrayOrCollection(attributeString));
+						if (!UtilitiesFunctions.isFunction(attributeString) && !UtilitiesFunctions.singleLineFunction(attributeString)) {
+							//System.out.println("isarrayorcoll" + UtilitiesFunctions.isArrayOrCollection(attributeString));
 							if(UtilitiesFunctions.isArrayOrCollection(attributeString) == "Collection") {
 								attributeString = attributeString.replaceAll(",\\s+", ",");
 							}

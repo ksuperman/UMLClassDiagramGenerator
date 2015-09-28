@@ -222,7 +222,7 @@ public class yUMLDigaramGenerator {
 		String command = "echo \"" + ParseString.getParseStringYUML() + "\" | yuml -v -t class -s scruffy -o /home/rakshithk/diagram.png";
 		String[] Commands = new String[]{"bash","-c",command};
 		String Temp;
-		System.out.println(command);
+		//System.out.println(command);
 		try {
 			Process currentshell = Runtime.getRuntime().exec(Commands);
 			//currentshell.waitFor();

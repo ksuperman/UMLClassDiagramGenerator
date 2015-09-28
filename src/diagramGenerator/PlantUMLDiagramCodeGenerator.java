@@ -107,9 +107,9 @@ public class PlantUMLDiagramCodeGenerator {
 				ParseString.setParseString("}\n}\n");
 				// Creating the Dependencies between classes
 				for (Map.Entry<String, ArrayList<String>> dependency : dependencyList.entrySet()) {
-					System.out.println("dependency.getKey()"+ dependency.getKey());
+					//System.out.println("dependency.getKey()"+ dependency.getKey());
 					String arrorType = dependencyMap.get(dependency.getKey());
-					System.out.println("arrorType"+arrorType);
+					//System.out.println("arrorType"+arrorType);
 					tempDepClassArray = dependency.getValue();
 					for (String depClassName : tempDepClassArray) {
 						if(UtilitiesFunctions.isArray(depClassName))

@@ -72,7 +72,7 @@ public String getClassName() {
 public String toString() {
 	String returnString = "";
 	returnString += "\n-----------------------------------------------------";
-	returnString += "\nPackage Name : " + className;
+	returnString += "\nPackage Name : " + packageName;
 	returnString += "\nClass Modifier : " + modifierName;
 	returnString += "\nClass Type : " + classType;
 	returnString += "\nClass Name : " + className;

@@ -32,7 +32,7 @@ public class UMLImageRender {
 					plantUML.resetClassFields();	
 				}
 			}
-			System.out.println(ParseString.getParseStringPlantUML());
+			//System.out.println(ParseString.getParseStringPlantUML());
 			SourceStringReader reader = new SourceStringReader(ParseString.getParseStringPlantUML());
 			String desc = reader.generateImage(new File(UMLParser.UMLDiagramPath));
 		}
