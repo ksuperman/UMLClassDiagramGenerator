@@ -97,9 +97,13 @@ public class yUMLDigaramGenerator {
 				if(attributeArray.size() > 0||methodsArray.size() > 0)
 					ParseString.setParseString("[");
 				if(attributeArray.size() > 0||methodsArray.size() > 0) {
-					//if(modifierName.equals("static") || modifierName.equals("abstract"))
-					//	ParseString.setParseString("<<" +   modifierName  + ">>;");
+					/*if(modifierName.equals("static") || modifierName.equals("abstract"))
+						ParseString.setParseString("<<" +   modifierName  + ">> ");
+					else if(classType.equals("interface"))
+						ParseString.setParseString(" << " +   classType  + " >> ");
+					*/
 					ParseString.setParseString(className);	
+					
 				}
 						
 				if(attributeArray.size() > 0){
@@ -219,7 +223,10 @@ public class yUMLDigaramGenerator {
 	}finally {
 		
 	}*/
-		String command = "echo \"" + ParseString.getParseStringYUML() + "\" | yuml -v -t class -s scruffy -o /home/rakshithk/diagram.png";
+		String parseString = ParseString.getParseStringYUML();
+		//parseString = parseString.replaceAll("<","%3C");
+		//parseString = parseString.replaceAll("<","%3E");
+		String command = "echo \"" + parseString + "\" | yuml -v -t class -s scruffy -o /home/rakshithk/diagram.png";
 		String[] Commands = new String[]{"bash","-c",command};
 		String Temp;
 		//System.out.println(command);

@@ -6,6 +6,7 @@ public final class ParseString {
 	private static String ParseStringMethods = "";
 
 	public static String getParseStringPlantUML() {
+		System.out.println(ParseStringtail);
 		return "@startuml\n" + ParseStringhead + ParseStringtail +  "@enduml";
 	}
 	
