@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
@@ -55,21 +56,21 @@ public final class ClassAttributesParser {
 				tempStringArray = node.split(";");
 				for (String attributeString : tempStringArray) {
 					try {
-						System.out.println("\nLINE--------" + attributeString + "\n");
-						System.out.println("isFunction----------" + UtilitiesFunctions.isFunction(attributeString));
+						//System.out.println("\nLINE--------" + attributeString + "\n");
+						//System.out.println("isFunction----------" + UtilitiesFunctions.isFunction(attributeString));
 						
 						if (!UtilitiesFunctions.isFunction(attributeString) && !UtilitiesFunctions.singleLineFunction(attributeString)) {
 							//System.out.println("isarrayorcoll" + UtilitiesFunctions.isArrayOrCollection(attributeString));
 							if(UtilitiesFunctions.isArrayOrCollection(attributeString) == "Collection") {
 								attributeString = attributeString.replaceAll(",\\s+", ",");
 							}
-							System.out.println("\nAfter LINE--------" + attributeString + "\n");
+							//System.out.println("\nAfter LINE--------" + attributeString + "\n");
 							tempStringArray1 = attributeString.split(" ");
 							for (String attributePiece : tempStringArray1) {
 								
 								if(attributePiece.equalsIgnoreCase("class") || attributePiece.equalsIgnoreCase("interface"))
 									break;
-								System.out.println("Now Processing attributePiece : " + attributePiece + "\n");
+								//System.out.println("Now Processing attributePiece : " + attributePiece + "\n");
 
 								if (dataTypeName != "" && dataTypeName != null && dataTypeFound && !variableFound) {
 									if (UtilitiesFunctions.isArrayOrCollection(attributePiece).equals("Array")) {
@@ -110,7 +111,7 @@ public final class ClassAttributesParser {
 										if(UtilitiesFunctions.isArray(attributePiece)) { 
 											if(UtilitiesFunctions.isArrayOrCollection(attributePiece) == "Collection") {
 												dataTypeName = attributePiece.substring(attributePiece.indexOf("<")+1,attributePiece.indexOf(">"));
-												System.out.println("Collection attruite" + dataTypeName);
+												//System.out.println("Collection attruite" + dataTypeName);
 												//dataTypeName = dataTypeName.substring(0, dataTypeName.indexOf(">"));
 												dataTypeName = classNames.get(dataTypeName);
 											}else
@@ -132,9 +133,9 @@ public final class ClassAttributesParser {
 									}
 								}
 
-								System.out.println("accessModifiersType-- " + accessModifiersType);
-								System.out.println("variableName ---  " + variableName);
-								System.out.println("dataTypeName ---  " + dataTypeName);
+								//System.out.println("accessModifiersType-- " + accessModifiersType);
+								//System.out.println("variableName ---  " + variableName);
+								//System.out.println("dataTypeName ---  " + dataTypeName);
 
 								if (dataTypeName != null && variableName != null && dataTypeName != "" && variableName != "") {
 									if (dataTypeName != "" && variableName != "") {
@@ -177,7 +178,7 @@ public final class ClassAttributesParser {
 		return methodAttributes;
 	}
 
-	public static ArrayList<String> getMethodDeclarations(CompilationUnit cu, String className) {
+	public static ArrayList<String> getMethodDeclarations(CompilationUnit cu) {
 		ArrayList<String> MethodsArray = new ArrayList<>();
 		String tempMethodList = "";
 		String[] tempStringArray = {};
@@ -191,12 +192,50 @@ public final class ClassAttributesParser {
 		}
 		return MethodsArray;
 	}
+	
+	public static ArrayList<String> getConstructorDeclarations(CompilationUnit cu) {
+		ArrayList<String> constructorArray = new ArrayList<>();
+		String tempMethodList = "";
+		String[] tempStringArray = {};
+		ParseString.clearParseStringMethods();
+		new ConstructorList().visit(cu, null);
+		tempMethodList = ParseString.getParseStringMethods();
+		tempStringArray = tempMethodList.split("\\n");
+		for (String methods : tempStringArray) {
+			if (methods != "")
+				constructorArray.add(methods);
+		}
+		return constructorArray;
+	}
+	
+	public static String sanitizeMethodDeclarations(String method) {
+		//public String operation()
+		//public static void main(String[] args)
+		//String operation()
+		
+		return method;
+	}
 
+	
 	private static class MethodList extends VoidVisitorAdapter {
 		@Override
 		public void visit(MethodDeclaration n, Object arg) {
+			
+			System.out.println("Testing : " + n.getDeclarationAsString(true, false, true));
 			ParseString.setParseStringMethods(n.getDeclarationAsString(true, false, true));
+			//System.out.println("Trying : " + n.);
 		}
+
+	}
+	
+	private static class ConstructorList extends VoidVisitorAdapter {
+
+		@Override
+		public void visit(ConstructorDeclaration c, Object arg) {
+			ParseString.setParseStringMethods(c.getDeclarationAsString());
+			System.out.println("Trying : " + c.getDeclarationAsString());
+		}
+		
 	}
 
 }

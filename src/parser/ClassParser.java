@@ -56,7 +56,7 @@ public class ClassParser {
 	private boolean packageFound = false, modifierFound = false, classFound = false, classNameFound = false;
 	
 	// Dependencies related Declaration.
-	private final String[] dependencies = { "implements;implements", "extends;extends" ,"associations;associations"};
+	private final String[] dependencies = { "implements;implements", "extends;extends" ,"associations;associations","uses;uses"};
 	private String dependenciesType = "";
 	private boolean dependenciesFound = false;
 	private ArrayList<String> tempDepClassArray;
@@ -67,6 +67,9 @@ public class ClassParser {
 	private ArrayList<String> methodsArray;
 	private String tempMethod;
 	
+	//Constructors related Declartions
+	private ArrayList<String> constructorArray;
+	
 	//Attribute related Declaration.
 	private ArrayList<String> attributeArray;
 
@@ -76,6 +79,7 @@ public class ClassParser {
 	private int tempInt = 0;
 	private String[] tempStringArray;
 	private String tempMethodList = "";
+	private String[] tempStringArray2;
 
 	public ClassParser(String javaProjectPath) {
 		// Constructor for Initializing the
@@ -95,8 +99,7 @@ public class ClassParser {
 			}
 		});
 
-		// Creating Compilation Unit for all the Source files present in the
-		// Java Project path.
+		// Creating Compilation Unit for all the Source files present in the Java Project path
 		cuMap = new HashMap<>();
 		for (int i = 0; i < javaFileList.length; i++) {
 
@@ -105,25 +108,20 @@ public class ClassParser {
 				classNames.put(javaFileList[i].getName().substring(0, javaFileList[i].getName().indexOf(".")), javaFileList[i].getName().substring(0, javaFileList[i].getName().indexOf(".")));
 				in = new FileInputStream(javaProjectPath + "/" + javaFileList[i].getName());
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			try {
 				cu = JavaParser.parse(in);
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} finally {
 				try {
 					in.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
 			cuMap.put(javaFileList[i].getName(), cu);
-
-			//System.out.println(cuMap.get(javaFileList[i].getName()).toStringWithoutComments());
 		}
 
 		dependencyMap = new HashMap<>();
@@ -244,8 +242,40 @@ public class ClassParser {
 						}
 					}
 					
+					//Getting Constructors
+					constructorArray = ClassAttributesParser.getConstructorDeclarations(cu);
+					
 					//Getting the Class Method Declartions
-					methodsArray = ClassAttributesParser.getMethodDeclarations(cu, className);
+					methodsArray = ClassAttributesParser.getMethodDeclarations(cu);
+
+					
+					
+					//Convert Class instances inside methods to "Uses" Relationship
+					/*	
+					public void test(A1 a1, String A1)
+					public void test(A2 a2)
+					*/
+					dependenciesType = "uses";
+					for(String method : methodsArray) {
+						if(method != null && method != "") {
+							//System.out.println(method);
+							tempStringArray = method.substring(method.indexOf("(")+1, method.indexOf(")")).split(",");
+							for(String parameters : tempStringArray) {
+								tempStringArray2 =  parameters.split(" ");
+								if(classNames.containsKey(tempStringArray2[0])) {
+									//System.out.println(className + " is dependent on the Interface " + tempStringArray2[0]);
+									tempDepClassArray = dependencyList.get(dependenciesType);
+									if (tempDepClassArray != null)
+										tempDepClassArray.add(tempStringArray2[0]);
+									else {
+										tempDepClassArray = new ArrayList<>();
+										tempDepClassArray.add(tempStringArray2[0]);
+									}
+									dependencyList.put(dependenciesType, tempDepClassArray);
+								}
+							}
+						}
+					}
 										
 					//Getting the Class Attribute Declartions
 					attributeArray = ClassAttributesParser.getAttributesDeclarations(cu, classNames);
@@ -255,7 +285,7 @@ public class ClassParser {
 					while(attribItrator.hasNext()) {
 						String attribute = attribItrator.next();
 						dependenciesType = "associations";
-						System.out.println("attribute ; " + attribute);
+						//System.out.println("attribute ; " + attribute);
 						tempStringArray = attribute.split(" ");
 						if(UtilitiesFunctions.isArray(tempStringArray[1])) {
 							if(UtilitiesFunctions.isArrayOrCollection(tempStringArray[1]) == "Collection") {
@@ -265,7 +295,7 @@ public class ClassParser {
 						}
 						else
 							temp = tempStringArray[1];
-							System.out.println(temp);
+							//System.out.println(temp);
 						if(classNames.containsKey(temp)){
 							//AttributeArray.remove(attribute);
 							tempDepClassArray = dependencyList.get(dependenciesType);
@@ -312,7 +342,7 @@ public class ClassParser {
 					}*/
 					
 					if(className != null && className != "")	
-						pc[i]= new ParsedClass(packageName, modifierName, classType, className, dependencyList, attributeArray, methodsArray);
+						pc[i]= new ParsedClass(packageName, modifierName, classType, className, dependencyList, attributeArray, methodsArray, constructorArray);
 					dependencyList.clear();
 					tempDepClassArray = new ArrayList<>();
 

@@ -77,7 +77,7 @@ public final class UtilitiesFunctions {
 		
 		if(attributePiece != null) {
 			for(Map.Entry<String,String> collectionType : collectionTypes.entrySet() ) {
-				System.out.println("matches " + attributePiece.contains(collectionType.getKey() + "<"));
+				//System.out.println("matches " + attributePiece.contains(collectionType.getKey() + "<"));
 				if(attributePiece.contains(collectionType.getKey() + "<")) {
 					flag = "Collection";
 					break;

@@ -22,17 +22,19 @@ public class UMLParser {
 	private static ParsedClass[] pc;
 
 	public static void main(String[] args) throws IOException, ParseException {
-		// TODO Auto-generated method stub
 
 		JavaProjectPath = args[0];
 		UMLDiagramPath = args[1];
 
 		ClassParser classes = new ClassParser(JavaProjectPath);
 		pc = classes.ParseClass();
+		
 		for(int i = 0;i<pc.length;i++) {
 			if(pc[i] != null)
 				pc[i].getDependencyList();
 		}
+		
+		
 		for(ParsedClass clas : pc) {
 			if(clas!=null)
 				System.out.println(clas.toString());
@@ -40,6 +42,6 @@ public class UMLParser {
 		
 		UMLImageRender classtest = new UMLImageRender();
 		classtest.createClassUMLObject(pc,"plantuml");
-		classtest.createClassUMLObject(pc,"yUML");
+		//classtest.createClassUMLObject(pc,"yUML");
 	}
 }

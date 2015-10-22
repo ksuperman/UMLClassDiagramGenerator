@@ -111,7 +111,7 @@ public class yUMLDigaramGenerator {
 				}
 				for(String attribute : attributeArray) {
 					tempStringArray = attribute.split(" ");
-					System.out.println("array " + attribute);
+					//System.out.println("array " + attribute);
 					if(UtilitiesFunctions.isArray(tempStringArray[1])) {
 						if(UtilitiesFunctions.isArrayOrCollection(tempStringArray[1]) == "Collection") {
 							ParseString.setParseString(accessModifierMap.get(tempStringArray[0]) + tempStringArray[2] + ":" +tempStringArray[1].substring(0, tempStringArray[1].indexOf("<")) + " Collection" + ";");
@@ -138,17 +138,22 @@ public class yUMLDigaramGenerator {
 				
 				//[Customer]1-0..*[Address]
 				// Creating the Dependencies between classes
+				System.out.println("Dependencies gererate in yUML\n");
 				for (Map.Entry<String, ArrayList<String>> dependency : dependencyList.entrySet()) {
-					System.out.println("dependency.getKey()"+ dependency.getKey());
+					//System.out.println("dependency.getKey()"+ dependency.getKey());
 					String arrorType = dependencyMap.get(dependency.getKey());
-					System.out.println("arrorType"+arrorType);
+					//System.out.println("arrorType"+arrorType);
 					tempDepClassArray = dependency.getValue();
 					for (String depClassName : tempDepClassArray) {
-						if(UtilitiesFunctions.isArray(depClassName))
+						if(UtilitiesFunctions.isArray(depClassName)) {
+							System.out.println("[" + className + "]" + arrorType + "*[" + depClassName.substring(0, depClassName.indexOf("[")) + "],");
 							ParseString.setParseStringTail("[" + className + "]" + arrorType + "*[" + depClassName.substring(0, depClassName.indexOf("[")) + "],");
-						else
+						}
+						else {
 							ParseString.setParseStringTail("[" + className + "]" + arrorType + "1[" + depClassName + "],");
+							System.out.println("[" + className + "]" + arrorType + "1[" + depClassName + "],");
 						//ParseString.setParseStringTail("[" + className + "]1" + arrorType + "*[" + depClassName.substring(0, depClassName.indexOf("[")) + "],");
+						}
 					}
 				}
 			}

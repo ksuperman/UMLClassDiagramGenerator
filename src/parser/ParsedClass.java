@@ -14,6 +14,7 @@ private String className;
 private Map<String, java.util.ArrayList<String>> dependencyList = new HashMap<>();
 private ArrayList<String> AttributeArray;
 private ArrayList<String> MethodsArray;
+private ArrayList<String> constructorArray;
 
 /**
  * @param packageName
@@ -27,7 +28,7 @@ private ArrayList<String> MethodsArray;
 
 public ParsedClass(String packageName, String modifierName, String classType, String className,
 		Map<String, ArrayList<String>> dependencyList, ArrayList<String> attributeArray,
-		ArrayList<String> methodsArray) {
+		ArrayList<String> methodsArray,ArrayList<String> constructorArray) {
 	if (packageName == "" || packageName == null)
 		this.packageName = "DefaultPackage";
 	else
@@ -38,6 +39,7 @@ public ParsedClass(String packageName, String modifierName, String classType, St
 	this.dependencyList.putAll(dependencyList);
 	AttributeArray = attributeArray;
 	MethodsArray = methodsArray;
+	this.constructorArray = constructorArray;
 }
 
 public String getPackageName() {
@@ -64,6 +66,10 @@ public ArrayList<String> getMethodsArray() {
 	return MethodsArray;
 }
 
+public ArrayList<String> getConstructors() {
+	return constructorArray;
+}
+
 public String getClassName() {
 	return className;
 }
@@ -83,6 +89,10 @@ public String toString() {
 	returnString += "\nMethods Name : ";
 	for(String method : MethodsArray) {
 		returnString += "\n" + method;
+	}
+	returnString += "\nConstructor : ";
+	for(String constructor : constructorArray) {
+		returnString += "\n" + constructor;
 	}
 	returnString += "\nDepencies : ";
 	for(Map.Entry<String, ArrayList<String>> dependent : dependencyList.entrySet()) {
