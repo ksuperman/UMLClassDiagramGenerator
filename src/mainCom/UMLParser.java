@@ -31,7 +31,8 @@ public class UMLParser {
 				"/home/rakshithk/Desktop/Test Cases/uml-parser-test-2",
 				"/home/rakshithk/Desktop/Test Cases/uml-parser-test-3",
 				"/home/rakshithk/Desktop/Test Cases/uml-parser-test-4",
-				"/home/rakshithk/Desktop/Test Cases/uml-parser-test-5"
+				"/home/rakshithk/Desktop/Test Cases/uml-parser-test-5",
+				"/home/rakshithk/Desktop/Test Cases/starbucks"
 		};
 		
 		int counter = 0;
@@ -44,8 +45,8 @@ public class UMLParser {
 			UMLDiagramPath = "/home/rakshithk/test" + counter++ + ".png";
 			ClassParser classes = new ClassParser(Testcase);
 			pc = classes.ParseClass();
-			
-		/*	for(ParsedClass clas : pc) {
+		/*	
+			for(ParsedClass clas : pc) {
 				if(clas!=null)
 					System.out.println(clas.toString());
 			}*/
@@ -57,8 +58,8 @@ public class UMLParser {
 			System.out.println("--------------------------------------------------------------------------");
 			//classtest.createClassUMLObject(pc,"yUML");
 		}
-/*		
-		JavaProjectPath = args[0];
+		
+		/*JavaProjectPath = args[0];
 		UMLDiagramPath = args[1];
 
 		ClassParser classes = new ClassParser(JavaProjectPath);

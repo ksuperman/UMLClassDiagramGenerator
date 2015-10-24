@@ -115,10 +115,11 @@ public class PlantUMLDiagramCodeGenerator {
 		try {
 			//clear the Static Class before the PlantUML Code is Generated
 			ParseString.clearParseStringMethods();
+			
+			//Hide Access Modifier Icons
 			if(!showIcons) {
 				ParseString.setParseString("skinparam classAttributeIconSize 0\n");
 			}
-
 
 			//Setting the Package Name
 			if (packageName == "")
@@ -356,12 +357,10 @@ public class PlantUMLDiagramCodeGenerator {
 		String usesArrorType = dependencyMap.get("uses");
 		tempString = "";
 		for(String dependency : tempDependencyArr) {
-			//System.out.println("dependency Processing === " + dependency );
 			if(dependency.indexOf(associationArrorType)>0 && dependency.indexOf(">")<0) {
 				addToMatrix = true;
 				ArrayList<String> tempStringArrayList = new ArrayList();
 				tempStringArrayList.addAll(Arrays.asList(dependency.split(" ")));
-
 				if(!OptimizationMatrixList.isEmpty()) {
 					for(int index = 0;index<OptimizationMatrixList.size();index++) {
 						if(tempStringArrayList.get(0).equals(OptimizationMatrixList.get(index).get(3)) 
@@ -370,9 +369,15 @@ public class PlantUMLDiagramCodeGenerator {
 							OptimizationMatrixList.get(index).add(1, tempStringArrayList.get(2));
 							addToMatrix = false;
 						}
+						if(tempStringArrayList.get(0).equals(OptimizationMatrixList.get(index).get(0)) 
+								&& tempStringArrayList.get(3).equals(OptimizationMatrixList.get(index).get(3))) {
+							OptimizationMatrixList.get(index).remove(2);
+							OptimizationMatrixList.get(index).add(2, "\"*\"");
+							addToMatrix = false;
+						}
 					}
 				}
-
+			
 				if(addToMatrix) {
 					OptimizationMatrixList.add(tempStringArrayList);	
 				}
@@ -383,18 +388,15 @@ public class PlantUMLDiagramCodeGenerator {
 				addToMatrix = true;
 				ArrayList<String> tempStringArrayList = new ArrayList();
 				tempStringArrayList.addAll(Arrays.asList(dependency.split(" ")));
-
 				if(!OptimizationMatrixList.isEmpty()) {
 					for(int index = 0;index<OptimizationMatrixList.size();index++) {
 						if(tempStringArrayList.get(0).equals(OptimizationMatrixList.get(index).get(0)) 
 								&& tempStringArrayList.get(3).equals(OptimizationMatrixList.get(index).get(3))) {
-
 							//OptimizationMatrixList.get(index).add(1, tempStringArrayList.get(2));
 							addToMatrix = false;
 						}
 					}
 				}
-
 				if(addToMatrix) {
 					OptimizationMatrixList.add(tempStringArrayList);	
 				}
@@ -405,17 +407,17 @@ public class PlantUMLDiagramCodeGenerator {
 			}
 		}
 
-		//System.out.println("Final Dependencies are \n");
-		
+		tempArrayListString = new ArrayList<String>();
 		for(ArrayList<String> arrayList : OptimizationMatrixList) {
+			tempString2 = "";
 			for(String items : arrayList) {
-				tempString += items; 
-				//System.out.print(items);
+				tempString2 += items; 
 			}
-			tempString += "\n";
-			//System.out.println();
+			if(!tempArrayListString.contains(tempString2)) {
+				tempArrayListString.add(tempString2);
+				tempString += tempString2 + "\n";
+			}
 		}
-		
 		ParseString.overWriteParseStringBody(tempString);
 
 		/*
