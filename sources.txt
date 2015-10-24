@@ -1,0 +1,10 @@
+./src/diagramGenerator/UMLImageRender.java
+./src/diagramGenerator/PlantUMLDiagramCodeGenerator.java
+./src/diagramGenerator/yUMLDigaramGenerator.java
+./src/parser/MethodDeclarationStructure.java
+./src/parser/ClassParser.java
+./src/parser/ClassAttributesParser.java
+./src/parser/ParsedClass.java
+./src/utilities/UtilitiesFunctions.java
+./src/mainCom/UMLParser.java
+./src/mainCom/ParseString.java

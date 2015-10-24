@@ -7,10 +7,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 import mainCom.ParseString;
 import mainCom.UMLParser;
 import net.sourceforge.plantuml.SourceStringReader;
+import parser.MethodDeclarationStructure;
 import parser.ParsedClass;
 
 /**
@@ -19,12 +21,18 @@ import parser.ParsedClass;
  */
 public class UMLImageRender {
 	
-	public void createClassUMLObject(ParsedClass[] pc, String diagramGeneratorName) throws IOException{
+	public void createClassUMLObject(ArrayList<ParsedClass> pc, String diagramGeneratorName) throws IOException{
 		ParseString.clearParseStringMethods();
 		if(diagramGeneratorName.equals("plantuml")) {
 			ParseString.clearParseStrings();
 			PlantUMLDiagramCodeGenerator plantUML = new PlantUMLDiagramCodeGenerator();
-			System.out.println("pc.length" + pc.length);
+			System.out.println("Number of Classes : " + pc.size());
+			for(ParsedClass parsedClass : pc) {
+				plantUML.resetClassFields();
+				plantUML.setClassFields(parsedClass.getPackageName(), parsedClass.getModifierName(), parsedClass.getClassType(), parsedClass.getClassName(), parsedClass.getAttributeArray(), parsedClass.getMethodsArray(),parsedClass.getDependencyList(),parsedClass.getConstructors());
+				plantUML.generateUMLParsedCode();
+			}
+	/*		
 			for(int i = 0;i<pc.length;i++) {
 				if(pc[i] != null) {
 					plantUML.resetClassFields();
@@ -32,13 +40,13 @@ public class UMLImageRender {
 					plantUML.generateUMLParsedCode();
 					plantUML.resetClassFields();	
 				}
-			}
+			}*/
 			//System.out.println(ParseString.getParseStringPlantUML());
 			//SourceStringReader reader = new SourceStringReader(ParseString.getParseStringPlantUML());
 			//String desc = reader.generateImage(new File(UMLParser.UMLDiagramPath));
 			plantUML.renderUMLDiagram();
 		}
-		if(diagramGeneratorName.equals("yUML")) {
+		/*if(diagramGeneratorName.equals("yUML")) {
 			ParseString.clearParseStrings();
 			yUMLDigaramGenerator yUML = new yUMLDigaramGenerator();
 			for(int i = 0;i<pc.length;i++) {
@@ -50,6 +58,6 @@ public class UMLImageRender {
 				}
 			}
 			yUML.getYUMLDiagram();
-		}
+		}*/
 	}
 }

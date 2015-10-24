@@ -10,10 +10,13 @@ import java.util.Map;
 import mainCom.ParseString;
 import mainCom.UMLParser;
 import net.sourceforge.plantuml.SourceStringReader;
+import parser.MethodDeclarationStructure;
 import parser.ParsedClass;
 import utilities.UtilitiesFunctions;
 
 public class PlantUMLDiagramCodeGenerator {
+	//Diagram Related Declarations
+	private boolean showIcons = false;
 
 	//Class Related Declarations
 	private String packageName;
@@ -21,8 +24,8 @@ public class PlantUMLDiagramCodeGenerator {
 	private String classType;
 	private String className;
 	private ArrayList<String> attributeArray;
-	private ArrayList<String> methodsArray;
-	private ArrayList<String> constructorArray;
+	private ArrayList<MethodDeclarationStructure> methodsArray;
+	private ArrayList<MethodDeclarationStructure> constructorArray;
 	private Map<String, java.util.ArrayList<String>> dependencyList = new HashMap<>();	
 
 	// Dependencies related Declaration.
@@ -35,15 +38,19 @@ public class PlantUMLDiagramCodeGenerator {
 
 	//Attributes realted variables
 	private static Map<String, String> accessModifierMap = new HashMap<>();
-	//private static final String[] accessModifiers = { "public;+", "private;-", "protected;#" };
-	private static final String[] accessModifiers = { "public;+", "private;-"};
+	private static Map<String, String> otherModifierMap = new HashMap<>();
+	private static final String[] accessModifiers = { "public;+", "private;-"};//, "protected;#"
+	private static final String[] otherModifiers = {"static;static","abstract;abstract"};//,"synchronized;synchronized","final;final"
+	//private static final String[] accessModifiers = { "public;+", "private;-"};
 	
 	//Temp Varaibles
 	private String[] tempStringArray;
 	private String tempString = "";
+	private String tempString2 = "";
 	private String methodSignature = "";
 	private String[] methodSignatureArr;
 	private String[] signatureArr;
+	private ArrayList<String> tempArrayListString;
 
 	/**
 	 * @param packageName
@@ -71,16 +78,24 @@ public class PlantUMLDiagramCodeGenerator {
 				accessModifierMap.put(tempStringArray[0], tempStringArray[1]);
 			}
 		}
+		
+		otherModifierMap = new HashMap<>();
+		for (String modifiers : otherModifiers) {
+			tempStringArray = modifiers.split(";");
+			for (int x = 0; x < tempStringArray.length; x++) {
+				otherModifierMap.put(tempStringArray[0], tempStringArray[1]);
+			}
+		}
 	}
 
 	public void setClassFields(String packageName, String modifierName, String classType, String className,
-			ArrayList<String> attributeArray, ArrayList<String> methodsArray,Map<String, java.util.ArrayList<String>> dependencyList, ArrayList<String> constructorArray) {
+			ArrayList<String> attributeArray, ArrayList<MethodDeclarationStructure> arrayList,Map<String, java.util.ArrayList<String>> dependencyList, ArrayList<MethodDeclarationStructure> constructorArray) {
 		this.packageName = packageName;
 		this.modifierName = modifierName;
 		this.classType = classType;
 		this.className = className;
 		this.attributeArray = attributeArray;
-		this.methodsArray = methodsArray;
+		this.methodsArray = arrayList;
 		this.dependencyList = dependencyList;
 		this.constructorArray = constructorArray;
 	}
@@ -100,6 +115,9 @@ public class PlantUMLDiagramCodeGenerator {
 		try {
 			//clear the Static Class before the PlantUML Code is Generated
 			ParseString.clearParseStringMethods();
+			if(!showIcons) {
+				ParseString.setParseString("skinparam classAttributeIconSize 0\n");
+			}
 
 
 			//Setting the Package Name
@@ -118,9 +136,22 @@ public class PlantUMLDiagramCodeGenerator {
 				ParseString.setParseString("{\n");		
 				for(String attribute : attributeArray) {
 					tempStringArray = attribute.split(" ");
+					if(tempStringArray.length == 3) {
+						if(accessModifierMap.get(tempStringArray[0]) != null && accessModifierMap.get(tempStringArray[0]) != "") {
+							tempString = accessModifierMap.get(tempStringArray[0]);
+							tempString += tempStringArray[2];
+							tempString += " : ";
+							tempString += tempStringArray[1];
+							tempString += "\n";
+							ParseString.setParseString(tempString);
+						}
+					}
+						
+					//tempString = tempStringArray[1];
 					//attribute = attribute.replaceFirst(tempStringArray[0], accessModifierMap.get(tempStringArray[0]))
-					if(accessModifierMap.get(tempStringArray[0]) != null && accessModifierMap.get(tempStringArray[0]) != "")
-						ParseString.setParseString(attribute.replaceFirst(tempStringArray[0], accessModifierMap.get(tempStringArray[0])) + "\n");
+					/*if(accessModifierMap.get(tempStringArray[0]) != null && accessModifierMap.get(tempStringArray[0]) != "")
+						ParseString.setParseString(attribute.replaceFirst(tempStringArray[0], accessModifierMap.get(tempStringArray[0])) + "\n");*/
+					
 				}
 				ParseString.setParseString("}\n}\n");
 
@@ -142,8 +173,7 @@ public class PlantUMLDiagramCodeGenerator {
 							tempString += depClassName.substring(0, depClassName.indexOf("["));
 							//ParseString.setParseStringBody(tempString);
 							//ParseString.setParseStringBody(className + " " + arrorType + " \"*\" " + depClassName.substring(0, depClassName.indexOf("[")) + "\n");
-						}
-						else {
+						}else {
 							tempString = className + " " + arrorType ;
 							if(dependency.getKey().equals("associations"))//Denote Multiplicity for Association only
 								tempString += " \"1\" "; 
@@ -162,8 +192,53 @@ public class PlantUMLDiagramCodeGenerator {
 					}
 				}
 
+				//System.out.println("className : " + className);
 				//Creating the methods inside the classes
-				for(String methods : methodsArray) {
+				for(MethodDeclarationStructure methods : methodsArray) {
+					if(accessModifierMap.get(methods.getAccessModifier()) != null && accessModifierMap.get(methods.getAccessModifier()) != ""){
+						//System.out.println(methods);
+						tempString = className + " : ";
+						//{static}
+						tempArrayListString = methods.getOtherModifiers();
+						if(tempArrayListString != null) {
+							for(String otherModifiers : tempArrayListString) {
+								if(otherModifierMap.containsKey(otherModifiers)) {
+									tempString += "{" + otherModifierMap.get(otherModifiers) + "}";
+									break;	
+								}
+							}	
+						}
+						tempString += accessModifierMap.get(methods.getAccessModifier());
+						tempString += methods.getMethodName();
+						
+						tempArrayListString = methods.getParameters();
+						if(tempArrayListString != null) {
+							boolean firstTime = true;
+							tempString += "(";
+							for(String parameter : tempArrayListString) {
+								tempStringArray = parameter.split(" ");
+								if(tempStringArray.length == 2) {
+									if(firstTime)
+										tempString += tempStringArray[1] + " : " + tempStringArray[0];
+									else
+										tempString += ", " + tempStringArray[1] + " : " + tempStringArray[0];
+									firstTime = false;
+								}
+							}
+							tempString += ")";
+						}
+						else
+							tempString += methods.getParametersAsCommaSeparatedString();
+						
+						tempString += " : ";
+						tempString += methods.getReturnType();
+						tempString += "\n";
+						//System.out.println(tempString);
+						ParseString.setParseStringTail(tempString);	
+					}
+				}
+				//Old way
+				/*for(String methods : methodsArray) {
 					System.out.println("methods " + methods);
 					//public void setMessage(String msg)
 					//+setMessage(msg : String) : void
@@ -190,10 +265,39 @@ public class PlantUMLDiagramCodeGenerator {
 					System.out.println(tempString);
 					ParseString.setParseStringTail(tempString);
 					//ParseString.setParseStringTail(className + " : " + methods.replaceFirst(tempStringArray[0], accessModifierMap.get(tempStringArray[0])) + "\n");
-				}
+				}*/
 				
 				//Creating the methods inside the classes
-				for(String constructors : constructorArray) {
+				
+				for(MethodDeclarationStructure methods : constructorArray) {
+					//System.out.println(methods);
+					tempString = className + " : ";
+					tempString += accessModifierMap.get(methods.getAccessModifier());
+					tempString += methods.getMethodName();
+					
+					tempArrayListString = methods.getParameters();
+					if(tempArrayListString != null) {
+						boolean firstTime = true;
+						tempString += "(";
+						for(String parameter : tempArrayListString) {
+							tempStringArray = parameter.split(" ");
+							if(tempStringArray.length == 2) {
+								if(firstTime)
+									tempString += tempStringArray[1] + " : " + tempStringArray[0];
+								else
+									tempString += ", " + tempStringArray[1] + " : " + tempStringArray[0];
+								firstTime = false;
+							}
+						}
+						tempString += ")";
+					}
+					else
+						tempString += methods.getParametersAsCommaSeparatedString();
+					tempString += "\n";
+					//System.out.println(tempString);
+					ParseString.setParseStringTail(tempString);
+				}
+				/*for(String constructors : constructorArray) {
 					System.out.println("methods " + constructors);
 					//public Optimist(ConcreteSubject sub)
 					//+Optimist(sub : ConcreteSubject)
@@ -218,7 +322,7 @@ public class PlantUMLDiagramCodeGenerator {
 					tempString = className + " : " + accessModifierMap.get(tempStringArray[0]) + tempStringArray[1] + "(" +methodSignature + ")" + "\n";
 					System.out.println("Constructor : " + tempString);
 					ParseString.setParseStringTail(tempString);
-				}
+				}*/
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

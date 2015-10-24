@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ import mainCom.ParseString;
 import utilities.UtilitiesFunctions;
 
 public class ClassParser {
-	private ParsedClass[] pc = new ParsedClass [100];
+	private ArrayList<ParsedClass> pc = new ArrayList<ParsedClass>();
 	private String javaProjectPath;
 	private File[] javaFileList;
 	public Map<String, String> classNames = new HashMap<>();
@@ -50,6 +51,8 @@ public class ClassParser {
 	private final String privateModifierString = "private";
 	private final String protectedModifierString = "protected";
 	private final String classString = "class";
+	private final String voidReturnType = "void";
+	private final String returnStatement = "return";
 
 	// Package and Class related String values and Flag Declaration.
 	private String packageName = "", modifierName = "", classType = "", className = "";
@@ -64,22 +67,41 @@ public class ClassParser {
 	private Map<String, java.util.ArrayList<String>> dependencyList = new HashMap<>();
 	
 	//Methods related Declaration.
-	private ArrayList<String> methodsArray;
+	//private ArrayList<String> methodsArray;//////////////////////////////////////////////
+	private ArrayList<MethodDeclarationStructure> methodsArray;
 	private String tempMethod;
+	private Iterator<MethodDeclarationStructure> methodItr;
 	
 	//Constructors related Declartions
-	private ArrayList<String> constructorArray;
+	//private ArrayList<String> constructorArray;
+	private ArrayList<MethodDeclarationStructure> constructorArray;
 	
 	//Attribute related Declaration.
 	private ArrayList<String> attributeArray;
+	private final boolean optimizeGetterSetterVariableVisibility = true;
+	private boolean getterMethodFound = false;
+	private boolean setterMethodFound = false;
+	private boolean publicGetter = true;
+	private boolean publicSetter = true;
+	private MethodDeclarationStructure GetterMethod = null;
+	private MethodDeclarationStructure SetterMethod = null;
+	private ArrayList<String> changedAttributes = null; 
+	private Iterator<String> attribItrator;
 
 	// Temp Variables used for Intermediate processing.
 	private String line = "", temp = "";
-	private java.util.ArrayList<String> list;
 	private int tempInt = 0;
 	private String[] tempStringArray;
 	private String tempMethodList = "";
 	private String[] tempStringArray2;
+	private String[] tempStringArray3;
+	private String tempAttributeAccessModifier = "";
+	private String tempattributeType = "";
+	private String tempattributeName = "";
+	private String methodBody = "";
+	private ArrayList<String> list;
+	private ArrayList<String> tempArrayList;
+	private ArrayList<String> tempArrayList1;
 
 	public ClassParser(String javaProjectPath) {
 		// Constructor for Initializing the
@@ -134,9 +156,11 @@ public class ClassParser {
 		tempStringArray = null;
 	}
 
-	public ParsedClass[] ParseClass() {
+	public ArrayList<ParsedClass> ParseClass() {
 		try {
-
+			//Setup the Static Class
+			ClassAttributesParser.setupClass();
+			
 			for (int i = 0; i < javaFileList.length; i++) {
 				cu = cuMap.get(javaFileList[i].getName());
 				
@@ -248,14 +272,14 @@ public class ClassParser {
 					//Getting the Class Method Declartions
 					methodsArray = ClassAttributesParser.getMethodDeclarations(cu);
 
-					
-					
 					//Convert Class instances inside methods to "Uses" Relationship
 					/*	
 					public void test(A1 a1, String A1)
 					public void test(A2 a2)
 					*/
-					dependenciesType = "uses";
+					
+					/*	Commented for Converting to Method Objects
+				  	dependenciesType = "uses";
 					for(String method : methodsArray) {
 						if(method != null && method != "") {
 							//System.out.println(method);
@@ -275,13 +299,43 @@ public class ClassParser {
 								}
 							}
 						}
+					}*/
+					/*System.out.println("className : " + className);
+					for(MethodDeclarationStructure method : methodsArray) {
+						System.out.println(method);
+					}*/
+					
+					//Convert Class instances inside methods to "Uses" Relationship
+					dependenciesType = "uses";
+					for(MethodDeclarationStructure method : methodsArray) {
+						ArrayList<String> tempArrayList = method.getParameters();
+						if(tempArrayList != null) {
+							for(String parameters : tempArrayList) {
+								tempStringArray2 =  parameters.split(" ");
+								if(classNames.containsKey(tempStringArray2[0])) {
+									//System.out.println(className + " is dependent on the Interface " + tempStringArray2[0]);
+									tempDepClassArray = dependencyList.get(dependenciesType);
+									if (tempDepClassArray != null)
+										tempDepClassArray.add(tempStringArray2[0]);
+									else {
+										tempDepClassArray = new ArrayList<>();
+										tempDepClassArray.add(tempStringArray2[0]);
+									}
+									dependencyList.put(dependenciesType, tempDepClassArray);
+								}
+							}
+						}
 					}
-										
+															
 					//Getting the Class Attribute Declartions
+					System.out.println(className + "has following attr.");
 					attributeArray = ClassAttributesParser.getAttributesDeclarations(cu, classNames);
+					for(String attr : attributeArray) {
+						System.out.println("attr : " + attr);
+					}
 					
 					//Convert Class declations inside other classes to Assocations
-					Iterator<String> attribItrator = attributeArray.iterator();
+					attribItrator = attributeArray.iterator();
 					while(attribItrator.hasNext()) {
 						String attribute = attribItrator.next();
 						dependenciesType = "associations";
@@ -309,7 +363,140 @@ public class ClassParser {
 							attribItrator.remove();
 						}
 					}
-		
+					//Check Method Body for Dependencies 
+					methodItr = methodsArray.iterator();
+					while(methodItr.hasNext()) {
+						MethodDeclarationStructure methoditrelement = methodItr.next();
+						if(methoditrelement.equals(SetterMethod) || methoditrelement.equals(GetterMethod)) {
+							System.out.println("Removed " + methoditrelement.getMethodName());
+							methodItr.remove();
+						}
+					}
+					
+					//Converting Getter and Setter Methods of Private Methods to Public access Method					
+					if(optimizeGetterSetterVariableVisibility) {
+						changedAttributes = new ArrayList<String>();
+						attribItrator = attributeArray.iterator();
+						while(attribItrator.hasNext()) {
+							String attribute = attribItrator.next();
+							
+							getterMethodFound = false;
+							setterMethodFound = false;
+							publicGetter = false;
+							publicSetter = false;
+							GetterMethod = null;
+							SetterMethod = null;
+							tempArrayList = new ArrayList<String>();
+							tempArrayList1 = new ArrayList<String>();
+							
+							System.out.println(attribute);
+							
+							if(attribute != null && attribute != "") {
+								tempStringArray = attribute.split(" ");
+								if(tempStringArray.length > 0) {
+									tempAttributeAccessModifier = tempStringArray[0].trim();
+									tempattributeType = tempStringArray[1].trim();
+									tempattributeName = tempStringArray[2].trim();
+									
+									System.out.println("tempAttributeAccessModifier : " + tempAttributeAccessModifier);
+									System.out.println("tempattributeType : " + tempattributeType);
+									System.out.println("tempattributeName : " + tempattributeName);
+									
+									//Check for Each Method if the Setter and Getter Exists
+									for(MethodDeclarationStructure method : methodsArray) {
+										
+										System.out.println("Checking method : " + method.getMethodName());
+										
+										//check for Getter Method
+										if(method.getReturnType().equals(tempattributeType) && !getterMethodFound) {
+											methodBody = method.getMethodBody();
+											if(methodBody != null && methodBody != "") {
+												tempStringArray = methodBody.split("\n");
+												if(tempStringArray != null) {
+													for(String line: tempStringArray) {
+														if(line.contains(returnStatement)) {
+															System.out.println("line where return is found " + line);
+															if(line.trim().contentEquals(returnStatement + " " + tempattributeName + ";") || line.trim().contentEquals(returnStatement + " this." + tempattributeName + ";")) {
+																getterMethodFound = true;
+																if(method.getAccessModifier().equals(publicModifierString)) {
+																	publicGetter = true;
+																}
+																System.out.println("Getter method Found !!! and its public : " + publicGetter);
+																GetterMethod = method;
+																break;
+															}
+														}
+													}
+												}
+											}
+										}else {
+											//Check for Setter method which should not return any value
+											if(method.getReturnType().equals(voidReturnType) && !setterMethodFound){
+												tempArrayList = method.getParameters();
+												if(tempArrayList != null) {
+													//Check if Method have parameters which are being sent that are same type as the Current Valiable
+													for(String parameter : tempArrayList) {
+														tempStringArray2 = parameter.split(" ");
+														if(tempStringArray2 != null && tempStringArray2.length>0) {
+															if(tempattributeType.equals(tempStringArray2[0].trim())) {
+																tempArrayList1.add(tempStringArray2[1].trim());
+															}
+														}
+													}
+													//If the Current Method is void type and there are parameters which are being passed which are of same type as current Valiable
+													if(tempArrayList1.size()>0) {
+														methodBody = method.getMethodBody();
+														if(methodBody != null && methodBody != "") {
+															tempStringArray = methodBody.split("\n");
+															if(tempStringArray != null) {
+																for(String line: tempStringArray) {
+																	if((line.contains("this."+tempattributeName) || line.contains(tempattributeName)) && line.contains("=")) {
+																		System.out.println("line where return is found " + line);
+																		for(String params : tempArrayList1) {
+																			if((line.trim().contentEquals(tempattributeName + " = " + params + ";")) || (line.trim().contentEquals("this."+tempattributeName + " = " + params + ";"))) {
+																				setterMethodFound = true;
+																				if(method.getAccessModifier().equals(publicModifierString))
+																					publicSetter = true;
+																				System.out.println("Setter method Found !!! and its public : " + publicSetter);
+																				SetterMethod = method;
+																				break;
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}	
+												}
+											}
+										}
+									}
+								}
+								//if Setter and Getter Methods are found for the Current Variable.
+								if(SetterMethod != null && GetterMethod != null && getterMethodFound && setterMethodFound) {
+									if(publicGetter && publicSetter) {
+										//Make the Current Varaible also Public
+										System.out.println("Added " + attribute.replaceFirst(privateModifierString, publicModifierString) + " to changed Varible list");
+										changedAttributes.add(attribute.replaceFirst(privateModifierString, publicModifierString));
+										attribItrator.remove();
+									}
+									//remove the current methods from the methodlist
+									methodItr = methodsArray.iterator();
+									while(methodItr.hasNext()) {
+										MethodDeclarationStructure methoditrelement = methodItr.next();
+										if(methoditrelement.equals(SetterMethod) || methoditrelement.equals(GetterMethod)) {
+											System.out.println("Removed " + methoditrelement.getMethodName());
+											methodItr.remove();
+										}
+									}
+								}
+							}
+							System.out.println("\n");
+						}	
+						if(changedAttributes != null) {
+							attributeArray.addAll(changedAttributes);
+						}
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				} finally {
@@ -341,11 +528,16 @@ public class ClassParser {
 						ParseString.setParseStringTail(className + " : " + methods + "\n");
 					}*/
 					
-					if(className != null && className != "")	
-						pc[i]= new ParsedClass(packageName, modifierName, classType, className, dependencyList, attributeArray, methodsArray, constructorArray);
-					dependencyList.clear();
+					if(className != null && className != "") {	
+						pc.add(new ParsedClass(packageName, modifierName, classType, className, dependencyList, (ArrayList<String>) attributeArray.clone(), (ArrayList<MethodDeclarationStructure>) methodsArray.clone(), (ArrayList<MethodDeclarationStructure>) constructorArray.clone()));
+					//	System.out.println("classparser ; "+pc.get(i).getMethodsArray().toString());
+					}
+					//System.out.println(pc[i].toString());
 					tempDepClassArray = new ArrayList<>();
-
+					dependencyList.clear();
+					methodsArray.clear();
+					constructorArray.clear();
+					//System.out.println("classparser after clear ; "+pc.get(i).getMethodsArray().toString());
 					line = "";
 					temp = "";
 					packageName = "";
@@ -357,14 +549,12 @@ public class ClassParser {
 					classFound = false;
 					classNameFound = false;
 					dependenciesType = "";
-
 				}
-				
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-		}
+		} finally {}
+		System.out.println(pc.size());
 		return pc;
 	}
 }
