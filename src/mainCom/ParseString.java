@@ -13,7 +13,7 @@ public final class ParseString {
 
 	//Setters
 	public static String getParseStringPlantUML() {
-		System.out.println("@startuml\n" + ParseStringhead + ParseStringbody + ParseStringtail +  "@enduml");
+		//System.out.println("@startuml\n" + ParseStringhead + ParseStringbody + ParseStringtail +  "@enduml");
 		return "@startuml\n" + ParseStringhead  + ParseStringbody + ParseStringtail +  "@enduml";
 	}
 	

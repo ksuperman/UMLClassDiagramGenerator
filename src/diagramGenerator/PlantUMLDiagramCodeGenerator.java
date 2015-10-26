@@ -45,7 +45,7 @@ public class PlantUMLDiagramCodeGenerator {
 	private static Map<String, String> accessModifierMethodsMap = new HashMap<>();
 	private static Map<String, String> otherModifierMap = new HashMap<>();
 	private static final String[] accessModifiers = { "public;+", "private;-"};//, "protected;#"
-	private static final String[] accessModifiersMethods = { "public;+", "private;-"};//, "protected;#"
+	private static final String[] accessModifiersMethods = { "public;+"};//, "protected;#", "private;-"
 	private static final String[] otherModifiers = {"static;static","abstract;abstract"};//,"synchronized;synchronized","final;final"
 	//private static final String[] accessModifiers = { "public;+", "private;-"};
 
@@ -272,7 +272,7 @@ public class PlantUMLDiagramCodeGenerator {
 		}
 	}
 
-	private void optimizeDepencies() {
+	private void optimizeDepencies(ArrayList<ParsedClass> pc) {
 		tempString = "";
 		tempStringArray = new String[10];
 		boolean addToMatrix = true;
@@ -312,19 +312,36 @@ public class PlantUMLDiagramCodeGenerator {
 				addToMatrix = true;
 				ArrayList<String> tempStringArrayList = new ArrayList();
 				tempStringArrayList.addAll(Arrays.asList(dependency.split(" ")));
-				if(!OptimizationMatrixList.isEmpty()) {
+				String destinationClass = tempStringArrayList.get(2);
+				String sourceClass = tempStringArrayList.get(0);
+				for(ParsedClass c : pc) {
+					if(destinationClass.equals(c.getClassName())) {
+						if(!c.getClassType().equals("interface")) {
+							addToMatrix = false;
+							break;
+						}
+					}
+					if(sourceClass.equals(c.getClassName())) {
+						if(c.getClassType().equals("interface")) {
+							addToMatrix = false;
+							break;
+						}
+					}
+				}
+				if(!OptimizationMatrixList.isEmpty() && addToMatrix) {
 					for(int index = 0;index<OptimizationMatrixList.size();index++) {
 						if(tempStringArrayList.get(0).equals(OptimizationMatrixList.get(index).get(0)) 
-								&& tempStringArrayList.get(3).equals(OptimizationMatrixList.get(index).get(3))) {
+								&& tempStringArrayList.get(2).equals(OptimizationMatrixList.get(index).get(2))) {
 							addToMatrix = false;
 						}
 					}
 				}
+				
 				if(addToMatrix) {
 					OptimizationMatrixList.add(tempStringArrayList);	
 				}
 
-			}else {
+			}else{
 				tempString += dependency + "\n";
 			}
 		}
@@ -343,9 +360,9 @@ public class PlantUMLDiagramCodeGenerator {
 		ParseString.overWriteParseStringBody(tempString);
 	}
 
-	public void renderUMLDiagram() {
+	public void renderUMLDiagram(ArrayList<ParsedClass> pc) {
 		try {
-			optimizeDepencies();
+			optimizeDepencies(pc);
 			SourceStringReader reader = new SourceStringReader(ParseString.getParseStringPlantUML());
 			String desc = reader.generateImage(new File(UMLParser.UMLDiagramPath));
 		} catch (IOException e) {

@@ -293,7 +293,7 @@ public class ClassParser {
 						}
 					}
 					
-					/*//Convert Class instances inside methods to "Uses" Relationship
+					//Convert Class instances inside methods to "Uses" Relationship
 					dependenciesType = "uses";
 					for(MethodDeclarationStructure method : constructorArray) {
 						ArrayList<String> tempArrayList = method.getParameters();
@@ -312,7 +312,7 @@ public class ClassParser {
 								}
 							}
 						}
-					}*/
+					}
 															
 					//Getting the Class Attribute Declartions
 					attributeArray = ClassAttributesParser.getAttributesDeclarations(cu, classNames);
@@ -523,11 +523,7 @@ public class ClassParser {
 							tempArrayList1.add(methoditrelement.toString());
 						}
 					}
-					
-					for(String test : attributeArray) {
-						System.out.println("Final : " + test);
-					}
-					
+
 					if(className != null && className != "") {	
 						pc.add(new ParsedClass(packageName, modifierName, classType, className, dependencyList, (ArrayList<String>) attributeArray.clone(), (ArrayList<MethodDeclarationStructure>) methodsArray.clone(), (ArrayList<MethodDeclarationStructure>) constructorArray.clone()));
 					}

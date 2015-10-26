@@ -32,7 +32,7 @@ public class UMLImageRender {
 				plantUML.setClassFields(parsedClass.getPackageName(), parsedClass.getModifierName(), parsedClass.getClassType(), parsedClass.getClassName(), parsedClass.getAttributeArray(), parsedClass.getMethodsArray(),parsedClass.getDependencyList(),parsedClass.getConstructors());
 				plantUML.generateUMLParsedCode();
 			}
-			plantUML.renderUMLDiagram();
+			plantUML.renderUMLDiagram(pc);
 		}
 	}
 }
