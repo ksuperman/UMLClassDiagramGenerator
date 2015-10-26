@@ -6,6 +6,11 @@ import java.util.Map;
 
 import mainCom.ParseString;
 
+/**
+ * @author rakshithk
+ *
+ */
+
 public class ParsedClass {
 	private String packageName;
 	private String modifierName;
@@ -15,16 +20,6 @@ public class ParsedClass {
 	private ArrayList<String> AttributeArray;
 	private ArrayList<MethodDeclarationStructure> MethodsArray;
 	private ArrayList<MethodDeclarationStructure> constructorArray;
-
-	/**
-	 * @param packageName
-	 * @param modifierName
-	 * @param classType
-	 * @param className
-	 * @param dependencyList
-	 * @param attributeArray
-	 * @param methodsArray2
-	 */
 
 	public ParsedClass(String packageName, String modifierName, String classType, String className,
 			Map<String, ArrayList<String>> dependencyList, ArrayList<String> attributeArray,
@@ -40,8 +35,6 @@ public class ParsedClass {
 		this.AttributeArray = attributeArray;
 		this.MethodsArray = methodsArray;
 		this.constructorArray = constructorArray;
-		
-		//System.out.println("MethodsArray : " + MethodsArray.toString());
 	}
 
 	public String getPackageName() {

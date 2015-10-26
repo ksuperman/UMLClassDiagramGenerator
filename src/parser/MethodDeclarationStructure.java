@@ -2,6 +2,11 @@ package parser;
 
 import java.util.ArrayList;
 
+/**
+ * @author rakshithk
+ *
+ */
+
 public class MethodDeclarationStructure {
 
 	private String accessModifier;//public,private
@@ -10,7 +15,7 @@ public class MethodDeclarationStructure {
 	private String methodName;
 	private ArrayList<String> parameters;
 	private String methodBody;
-	
+
 	public MethodDeclarationStructure(String accessModifier, ArrayList<String> otherModifiers, String returnType, String methodName,
 			ArrayList<String> parameters, String methodBody) {
 		super();
@@ -59,7 +64,7 @@ public class MethodDeclarationStructure {
 	public String getMethodBody() {
 		return methodBody;
 	}
-	
+
 	public void setAccessModifier(String accessModifier) {
 		this.accessModifier = accessModifier;
 	}
@@ -75,7 +80,7 @@ public class MethodDeclarationStructure {
 	public void setParameters(ArrayList<String> parameters) {
 		this.parameters = parameters;
 	}
-	
+
 	@Override
 	public String toString() {
 		String tempString = "";
@@ -102,5 +107,5 @@ public class MethodDeclarationStructure {
 		tempString += ")";
 		return tempString;
 	}
-	
+
 }

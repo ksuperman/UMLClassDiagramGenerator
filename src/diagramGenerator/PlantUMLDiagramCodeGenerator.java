@@ -14,6 +14,11 @@ import parser.MethodDeclarationStructure;
 import parser.ParsedClass;
 import utilities.UtilitiesFunctions;
 
+/**
+ * @author rakshithk
+ *
+ */
+
 public class PlantUMLDiagramCodeGenerator {
 	//Diagram Related Declarations
 	private boolean showIcons = false;
@@ -35,14 +40,15 @@ public class PlantUMLDiagramCodeGenerator {
 	private ArrayList<String> tempDepClassArray;
 	private Map<String, String> dependencyMap = new HashMap<>();
 
-
 	//Attributes realted variables
 	private static Map<String, String> accessModifierMap = new HashMap<>();
+	private static Map<String, String> accessModifierMethodsMap = new HashMap<>();
 	private static Map<String, String> otherModifierMap = new HashMap<>();
 	private static final String[] accessModifiers = { "public;+", "private;-"};//, "protected;#"
+	private static final String[] accessModifiersMethods = { "public;+", "private;-"};//, "protected;#"
 	private static final String[] otherModifiers = {"static;static","abstract;abstract"};//,"synchronized;synchronized","final;final"
 	//private static final String[] accessModifiers = { "public;+", "private;-"};
-	
+
 	//Temp Varaibles
 	private String[] tempStringArray;
 	private String tempString = "";
@@ -51,15 +57,6 @@ public class PlantUMLDiagramCodeGenerator {
 	private String[] methodSignatureArr;
 	private String[] signatureArr;
 	private ArrayList<String> tempArrayListString;
-
-	/**
-	 * @param packageName
-	 * @param modifierName
-	 * @param classType
-	 * @param className
-	 * @param attributeArray
-	 * @param methodsArray
-	 */
 
 	public PlantUMLDiagramCodeGenerator() {
 
@@ -79,6 +76,14 @@ public class PlantUMLDiagramCodeGenerator {
 			}
 		}
 		
+		accessModifierMethodsMap = new HashMap<>();
+		for (String modifiers : accessModifiersMethods) {
+			tempStringArray = modifiers.split(";");
+			for (int x = 0; x < tempStringArray.length; x++) {
+				accessModifierMethodsMap.put(tempStringArray[0], tempStringArray[1]);
+			}
+		}
+
 		otherModifierMap = new HashMap<>();
 		for (String modifiers : otherModifiers) {
 			tempStringArray = modifiers.split(";");
@@ -115,7 +120,7 @@ public class PlantUMLDiagramCodeGenerator {
 		try {
 			//clear the Static Class before the PlantUML Code is Generated
 			ParseString.clearParseStringMethods();
-			
+
 			//Hide Access Modifier Icons
 			if(!showIcons) {
 				ParseString.setParseString("skinparam classAttributeIconSize 0\n");
@@ -147,33 +152,22 @@ public class PlantUMLDiagramCodeGenerator {
 							ParseString.setParseString(tempString);
 						}
 					}
-						
-					//tempString = tempStringArray[1];
-					//attribute = attribute.replaceFirst(tempStringArray[0], accessModifierMap.get(tempStringArray[0]))
-					/*if(accessModifierMap.get(tempStringArray[0]) != null && accessModifierMap.get(tempStringArray[0]) != "")
-						ParseString.setParseString(attribute.replaceFirst(tempStringArray[0], accessModifierMap.get(tempStringArray[0])) + "\n");*/
-					
 				}
 				ParseString.setParseString("}\n}\n");
 
 				//Creating the Dependencies between classes
-				//System.out.println("Dependencies gererate in PlantUML\n");
 				for (Map.Entry<String, ArrayList<String>> dependency : dependencyList.entrySet()) {
-					//System.out.println("dependency.getKey()"+ dependency.getKey());
 					String arrorType = dependencyMap.get(dependency.getKey());
-					//System.out.println("arrorType"+arrorType);
 					tempDepClassArray = dependency.getValue();
 					for (String depClassName : tempDepClassArray) {
 						if(UtilitiesFunctions.isArray(depClassName)) {
-							
+
 							tempString = className + " " + arrorType ;
 							if(dependency.getKey().equals("associations"))//Denote Multiplicity for Association only
 								tempString += " \"*\" ";
 							else
 								tempString += " ";
 							tempString += depClassName.substring(0, depClassName.indexOf("["));
-							//ParseString.setParseStringBody(tempString);
-							//ParseString.setParseStringBody(className + " " + arrorType + " \"*\" " + depClassName.substring(0, depClassName.indexOf("[")) + "\n");
 						}else {
 							tempString = className + " " + arrorType ;
 							if(dependency.getKey().equals("associations"))//Denote Multiplicity for Association only
@@ -181,10 +175,8 @@ public class PlantUMLDiagramCodeGenerator {
 							else
 								tempString += " ";
 							tempString += depClassName;
-							//ParseString.setParseStringBody(tempString);
-							//ParseString.setParseStringBody(className + " " + arrorType + " \"1\" " + depClassName + "\n");
 						}
-						
+
 						//Uses Lable applied for Interface
 						if(dependency.getKey().equals("uses"))
 							tempString += " : uses";
@@ -193,13 +185,10 @@ public class PlantUMLDiagramCodeGenerator {
 					}
 				}
 
-				//System.out.println("className : " + className);
 				//Creating the methods inside the classes
 				for(MethodDeclarationStructure methods : methodsArray) {
-					if(accessModifierMap.get(methods.getAccessModifier()) != null && accessModifierMap.get(methods.getAccessModifier()) != ""){
-						//System.out.println(methods);
+					if(accessModifierMethodsMap.get(methods.getAccessModifier()) != null && accessModifierMethodsMap.get(methods.getAccessModifier()) != ""){
 						tempString = className + " : ";
-						//{static}
 						tempArrayListString = methods.getOtherModifiers();
 						if(tempArrayListString != null) {
 							for(String otherModifiers : tempArrayListString) {
@@ -209,9 +198,9 @@ public class PlantUMLDiagramCodeGenerator {
 								}
 							}	
 						}
-						tempString += accessModifierMap.get(methods.getAccessModifier());
+						tempString += accessModifierMethodsMap.get(methods.getAccessModifier());
 						tempString += methods.getMethodName();
-						
+
 						tempArrayListString = methods.getParameters();
 						if(tempArrayListString != null) {
 							boolean firstTime = true;
@@ -230,52 +219,20 @@ public class PlantUMLDiagramCodeGenerator {
 						}
 						else
 							tempString += methods.getParametersAsCommaSeparatedString();
-						
+
 						tempString += " : ";
 						tempString += methods.getReturnType();
 						tempString += "\n";
-						//System.out.println(tempString);
 						ParseString.setParseStringTail(tempString);	
 					}
 				}
-				//Old way
-				/*for(String methods : methodsArray) {
-					System.out.println("methods " + methods);
-					//public void setMessage(String msg)
-					//+setMessage(msg : String) : void
-					methodSignature = methods.substring(methods.indexOf("(")+1, methods.indexOf(")"));
-					if(methodSignature.length() > 0) {
-						methodSignatureArr = methodSignature.split(",");
-						methodSignature = "";
-						
-						for(String signature : methodSignatureArr) {
-							System.out.println("signature " + signature);
-							signatureArr = signature.split(" ");
-							if(methodSignature == null || methodSignature == "")
-								methodSignature = signatureArr[1] + " : " + signatureArr[0];
-							else
-								methodSignature += " ," + signatureArr[2] + " : " + signatureArr[1];
-						}
-						System.out.println("methodSignature : " + methodSignature);	
-					}
-					
-					tempStringArray = methods.substring(0, methods.indexOf("(")).split(" ");
-					//attribute = attribute.replaceFirst(tempStringArray[0], accessModifierMap.get(tempStringArray[0]))
-					//ParseString.setParseString(tempStringArray[0].replaceFirst(tempStringArray[0], accessModifierMap.get(tempStringArray[0])) + "\n");
-					tempString = className + " : " + accessModifierMap.get(tempStringArray[0]) + tempStringArray[2] + "(" +methodSignature + ") : " + tempStringArray[1]  + "\n";
-					System.out.println(tempString);
-					ParseString.setParseStringTail(tempString);
-					//ParseString.setParseStringTail(className + " : " + methods.replaceFirst(tempStringArray[0], accessModifierMap.get(tempStringArray[0])) + "\n");
-				}*/
-				
-				//Creating the methods inside the classes
-				
+
+				//Creating the Constructor inside the classes
 				for(MethodDeclarationStructure methods : constructorArray) {
-					//System.out.println(methods);
 					tempString = className + " : ";
 					tempString += accessModifierMap.get(methods.getAccessModifier());
 					tempString += methods.getMethodName();
-					
+
 					tempArrayListString = methods.getParameters();
 					if(tempArrayListString != null) {
 						boolean firstTime = true;
@@ -295,38 +252,10 @@ public class PlantUMLDiagramCodeGenerator {
 					else
 						tempString += methods.getParametersAsCommaSeparatedString();
 					tempString += "\n";
-					//System.out.println(tempString);
 					ParseString.setParseStringTail(tempString);
 				}
-				/*for(String constructors : constructorArray) {
-					System.out.println("methods " + constructors);
-					//public Optimist(ConcreteSubject sub)
-					//+Optimist(sub : ConcreteSubject)
-					methodSignature = constructors.substring(constructors.indexOf("(")+1, constructors.indexOf(")"));
-					if(methodSignature.length() > 0) {
-						methodSignatureArr = methodSignature.split(",");
-						methodSignature = "";
-						
-						for(String signature : methodSignatureArr) {
-							System.out.println("signature " + signature);
-							signatureArr = signature.split(" ");
-							if(methodSignature == null || methodSignature == "")
-								methodSignature = signatureArr[1] + " : " + signatureArr[0];
-							else
-								methodSignature += " ," + signatureArr[2] + " : " + signatureArr[1];
-						}
-						System.out.println("methodSignature : " + methodSignature);	
-					}
-					
-					tempStringArray = constructors.substring(0, constructors.indexOf("(")).split(" ");
-
-					tempString = className + " : " + accessModifierMap.get(tempStringArray[0]) + tempStringArray[1] + "(" +methodSignature + ")" + "\n";
-					System.out.println("Constructor : " + tempString);
-					ParseString.setParseStringTail(tempString);
-				}*/
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}finally {
 			resetClassFields();
@@ -347,10 +276,8 @@ public class PlantUMLDiagramCodeGenerator {
 		tempString = "";
 		tempStringArray = new String[10];
 		boolean addToMatrix = true;
-		int i = 0,j = 0;
 
 		ArrayList<ArrayList<String>> OptimizationMatrixList = new ArrayList();
-	//	String[][] OptimizationMatrix = new String[20][10];
 		tempString = ParseString.getParseStringbody();
 		String[] tempDependencyArr = tempString.split("\n");
 		String associationArrorType = dependencyMap.get("associations");
@@ -377,14 +304,11 @@ public class PlantUMLDiagramCodeGenerator {
 						}
 					}
 				}
-			
+
 				if(addToMatrix) {
 					OptimizationMatrixList.add(tempStringArrayList);	
 				}
 			}else if(dependency.indexOf(usesArrorType)>0){
-				/*Subject ..> Observer : uses
-				Subject ..> Observer : uses*/
-				
 				addToMatrix = true;
 				ArrayList<String> tempStringArrayList = new ArrayList();
 				tempStringArrayList.addAll(Arrays.asList(dependency.split(" ")));
@@ -392,7 +316,6 @@ public class PlantUMLDiagramCodeGenerator {
 					for(int index = 0;index<OptimizationMatrixList.size();index++) {
 						if(tempStringArrayList.get(0).equals(OptimizationMatrixList.get(index).get(0)) 
 								&& tempStringArrayList.get(3).equals(OptimizationMatrixList.get(index).get(3))) {
-							//OptimizationMatrixList.get(index).add(1, tempStringArrayList.get(2));
 							addToMatrix = false;
 						}
 					}
@@ -400,9 +323,8 @@ public class PlantUMLDiagramCodeGenerator {
 				if(addToMatrix) {
 					OptimizationMatrixList.add(tempStringArrayList);	
 				}
-				
+
 			}else {
-				//OptimizationMatrixList.add(new ArrayList<String>(Arrays.asList(dependency.split(" "))));
 				tempString += dependency + "\n";
 			}
 		}
@@ -419,35 +341,6 @@ public class PlantUMLDiagramCodeGenerator {
 			}
 		}
 		ParseString.overWriteParseStringBody(tempString);
-
-		/*
-		for(String dependency : tempDependencyArr) {
-			if(dependency.indexOf(arrorType)>0) {
-				tempStringArray = dependency.split(" ");
-
-				for(int index = 0;index<OptimizationMatrix.length;index++) {
-					addToMatrix = true;
-					if(tempStringArray[0] == OptimizationMatrix[index][3] && tempStringArray[3] == OptimizationMatrix[index][0]) {
-						OptimizationMatrix[index][4] = OptimizationMatrix[index][3];
-						OptimizationMatrix[index][3] = OptimizationMatrix[index][2];
-						OptimizationMatrix[index][2] = OptimizationMatrix[index][1];
-						OptimizationMatrix[index][1] = tempStringArray[2];
-						addToMatrix = false;
-					}
-				}
-				if(addToMatrix)
-					OptimizationMatrix[i++] = tempStringArray;
-
-				for(int index = 0;index<OptimizationMatrix.length;index++) {
-					System.out.println("OptimizationMatrix" + OptimizationMatrix[index][0]);
-					System.out.println("OptimizationMatrix" + OptimizationMatrix[index][1]);
-					System.out.println("OptimizationMatrix" + OptimizationMatrix[index][2]);
-					System.out.println("OptimizationMatrix" + OptimizationMatrix[index][3]);
-				}
-
-			}
-		}
-		 */
 	}
 
 	public void renderUMLDiagram() {
@@ -459,4 +352,5 @@ public class PlantUMLDiagramCodeGenerator {
 			e.printStackTrace();
 		}
 	}
+
 }

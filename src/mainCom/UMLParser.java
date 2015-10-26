@@ -16,6 +16,11 @@ import parser.ClassParser;
 import parser.MethodDeclarationStructure;
 import parser.ParsedClass;
 
+/**
+ * @author rakshithk
+ *
+ */
+
 public class UMLParser {
 
 	private static String JavaProjectPath;
@@ -39,7 +44,7 @@ public class UMLParser {
 		
 		for(String Testcase : Testcases) {
 			System.out.println("--------------------------------------------------------------------------");
-			System.out.println("--------------------------" + Testcase + "----------------------------------------");
+			System.out.println("--" + Testcase + "----------------------------------------");
 			System.out.println("--------------------------------------------------------------------------");
 			System.out.println("--------------------------------------------------------------------------");
 			UMLDiagramPath = "/home/rakshithk/test" + counter++ + ".png";

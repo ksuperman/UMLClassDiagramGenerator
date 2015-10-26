@@ -1,5 +1,10 @@
 package mainCom;
 
+/**
+ * @author rakshithk
+ *
+ */
+
 public final class ParseString {
 	private static String ParseStringhead = "";
 	private static String ParseStringbody = "";
@@ -7,14 +12,12 @@ public final class ParseString {
 	private static String ParseStringMethods = "";
 
 	//Setters
-	
 	public static String getParseStringPlantUML() {
 		System.out.println("@startuml\n" + ParseStringhead + ParseStringbody + ParseStringtail +  "@enduml");
 		return "@startuml\n" + ParseStringhead  + ParseStringbody + ParseStringtail +  "@enduml";
 	}
 	
 	public static String getParseStringYUML() {
-		//System.out.println(ParseStringtail);
 		return ParseStringhead + ParseStringtail;
 	}
 
@@ -50,7 +53,6 @@ public final class ParseString {
 	}
 	
 	//Getters
-	
 	public static String getParseStringbody() {
 		return ParseStringbody;
 	}
