@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="jar" name="UMLClassDiagramGenerator">
+	<property environment="env"/>
+	<property name="ECLIPSE_HOME" value="../../Downloads/IDE/eclipse/"/>
+	<property name="debuglevel" value="source,lines,vars"/>
+	<property name="target" value="1.7"/>
+	<property name="source" value="1.7"/>
+
+	<path id="UMLClassDiagramGenerator.classpath">
+		<pathelement location="bin"/>
+		<pathelement location="lib/javaparser-core-2.2.3-SNAPSHOT.jar"/>
+		<pathelement location="lib/plantuml.jar"/>
+	</path>
+
+	<target name="init">
+		<mkdir dir="bin"/>
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="src">
+				<exclude name="**/*.launch"/>
+				<exclude name="**/*.java"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="clean">
+		<delete dir="bin"/>
+		<delete dir="newlib" />
+		<delete dir="jar"/>
+	</target>
+
+	<target depends="clean" name="cleanall"/>
+
+	<target depends="cleanall,build-subprojects,build-project" name="build"/>
+
+	<target name="build-subprojects"/>
+
+	<target depends="init" name="build-project">
+		<echo message="${ant.project.name}: ${ant.file}"/>
+		<javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+			<src path="src"/>
+			<classpath refid="UMLClassDiagramGenerator.classpath"/>
+		</javac>
+	</target>
+
+	<target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+
+	<target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
+		<copy todir="${ant.library.dir}">
+			<fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+		</copy>
+		<unzip dest="${ant.library.dir}">
+			<patternset includes="jdtCompilerAdapter.jar"/>
+			<fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+		</unzip>
+	</target>
+
+	<target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+		<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+		<antcall target="build"/>
+	</target>
+
+	<target name="umlparser1" depends="build">
+		<java classname="mainCom.UMLParser" failonerror="true" fork="yes">
+			<arg value="${arg0}"/>
+			<arg value="${arg1}"/>
+			<classpath refid="UMLClassDiagramGenerator.classpath"/>
+		</java>
+	</target>
+
+	<target name="compile">
+		<delete dir="bin"/>
+		<mkdir dir="bin"/>
+		<javac srcdir="src" destdir="bin" classpathref="UMLClassDiagramGenerator.classpath"/>
+	</target>
+
+	<target name="jar" depends="build">
+		<mkdir dir="jar"/>
+		<mkdir dir="newlib" />
+
+		<jar jarfile="newlib/dependencies-all.jar">
+			<zipgroupfileset dir="lib">
+				<include name="**/*.jar" />
+			</zipgroupfileset>
+		</jar>
+
+		<jar destfile="jar/${ant.project.name}.jar" basedir="bin">
+			<manifest>
+				<attribute name="Main-Class" value="mainCom.UMLParser"/>
+			</manifest>
+			<zipfileset src="newlib/dependencies-all.jar" excludes="META-INF/*.SF" />
+		</jar>
+	</target>
+
+	<target name="umlparser" depends="jar">
+		<java jar="jar/${ant.project.name}.jar" failonerror="true" fork="true">
+			<arg value="${arg0}"/>
+			<arg value="${arg1}"/>
+		</java>
+	</target>
+</project>

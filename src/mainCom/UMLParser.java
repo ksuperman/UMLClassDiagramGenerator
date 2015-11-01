@@ -30,19 +30,24 @@ public class UMLParser {
 
 	public static void main(String[] args) throws IOException, ParseException {
 		if(!testFlag) {
-			JavaProjectPath = args[0];
-			UMLDiagramPath = args[1];
-	
-			ClassParser classes = new ClassParser(JavaProjectPath);
-			pc = classes.ParseClass();
-			
-			for(ParsedClass clas : pc) {
-				if(clas!=null)
-					System.out.println(clas.toString());
+			if(args.length == 2) {
+				JavaProjectPath = args[0];
+				UMLDiagramPath = args[1];
+				
+				ClassParser classes = new ClassParser(JavaProjectPath);
+				pc = classes.ParseClass();
+				
+				for(ParsedClass clas : pc) {
+					if(clas!=null)
+						System.out.println(clas.toString());
+				}
+				
+				UMLImageRender classtest = new UMLImageRender();
+				classtest.createClassUMLObject(pc,"plantuml");
+			}else {
+				System.out.println("Please provide the Input Arguments in the format of umlparser <classpath> <output file name>!!");
 			}
 			
-			UMLImageRender classtest = new UMLImageRender();
-			classtest.createClassUMLObject(pc,"plantuml");
 		}else {
 			String[] Testcases = {
 					"/home/rakshithk/Desktop/uml-parser-test-1",
