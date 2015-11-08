@@ -236,10 +236,14 @@ public class ClassParser {
 										}
 
 										if (dependenciesFound && tempStringArray[j] != dependenciesType) {
+											System.out.println("Class name : " + className);
+											System.out.println(" Dependencies found and ==> tempStringArray[j] ==> " + tempStringArray[j]);
 											if (tempStringArray[j].indexOf(",") != -1) {
-												tempDepClassArray = new ArrayList<>();
+												if (tempDepClassArray == null){
+													tempDepClassArray = new ArrayList<>();
+												}
 												tempDepClassArray.add(tempStringArray[j].substring(0,
-														tempStringArray[j].lastIndexOf(",")));
+												tempStringArray[j].lastIndexOf(",")));
 												dependencyList.put(dependenciesType, tempDepClassArray);
 											} else {
 												tempDepClassArray = dependencyList.get(dependenciesType);
@@ -254,6 +258,7 @@ public class ClassParser {
 												dependenciesType = "";
 												dependenciesFound = false;
 											}
+											System.out.println("dependencyList ==> " + dependencyList.toString());
 										}
 									} catch (Exception e) {
 										e.printStackTrace();
